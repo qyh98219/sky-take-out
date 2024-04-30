@@ -6,6 +6,7 @@ import com.sky.constant.MessageConstant;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.entity.Employee;
+import com.sky.exception.UserNameExistException;
 import com.sky.properties.JwtProperties;
 import com.sky.result.Result;
 import com.sky.service.IEmployeeService;
@@ -88,7 +89,7 @@ public class EmployeeController {
 
         Employee employee = employeeService.getOne(queryWrapper);
         if (!Objects.isNull(employee)) {
-            return Result.error(MessageConstant.ACCOUNT_USER_NAME_EXIST);
+            throw new UserNameExistException("用户名已存在");
         }
 
         //保存员工信息
