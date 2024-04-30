@@ -1,5 +1,6 @@
 package com.sky.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.entity.Employee;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -19,4 +20,12 @@ public interface IEmployeeService extends IService<Employee> {
      * @return
      */
     Employee login(EmployeeLoginDTO employeeLoginDTO);
+
+    /**
+     * 分页查询员工列表
+     * @param page
+     * @param name
+     * @return
+     */
+    IPage<Employee> selectPage(IPage<?> page, String name);
 }

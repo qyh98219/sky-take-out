@@ -11,5 +11,4 @@ import java.util.Map;
  **/
 public class ThreadLocalUtil {
     public static final ThreadLocal<Long> threadLocal = new ThreadLocal<>();
-
 }

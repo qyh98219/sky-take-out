@@ -1,6 +1,8 @@
 package com.sky.controller.admin;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sky.constant.JwtClaimsConstant;
 import com.sky.constant.MessageConstant;
 import com.sky.dto.EmployeeDTO;
@@ -12,6 +14,7 @@ import com.sky.result.Result;
 import com.sky.service.IEmployeeService;
 import com.sky.utils.JwtUtil;
 import com.sky.utils.ThreadLocalUtil;
+import com.sky.vo.EmployeeListVO;
 import com.sky.vo.EmployeeLoginVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -20,13 +23,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -63,7 +61,7 @@ public class EmployeeController {
         Employee employee = employeeService.login(employeeLoginDTO);
 
         //登录成功后，生成jwt令牌
-        Map<String, Object> claims = new HashMap<>();
+        Map<String, Object> claims = new HashMap<>(1);
         claims.put(JwtClaimsConstant.EMP_ID, employee.getId());
         String token = JwtUtil.createJWT(
                 jwtProperties.getAdminSecretKey(),
@@ -106,6 +104,18 @@ public class EmployeeController {
         }
         return Result.success("员工添加成功");
     }
+
+    @GetMapping("/page")
+    @ApiOperation("员工列表")
+    public Result<EmployeeListVO> employeeList(@RequestParam(defaultValue = "1") Integer page, @RequestParam(defaultValue = "10") Integer pageSize, @RequestParam(required = false) String name){
+        Page<Employee> myPage = new Page<>(page, pageSize);
+        IPage<Employee> resultPage = this.employeeService.selectPage(myPage, name);
+        EmployeeListVO employeeListVO = new EmployeeListVO();
+        employeeListVO.setTotal(resultPage.getTotal());
+        employeeListVO.setRecords(resultPage.getRecords());
+        return Result.success(employeeListVO);
+    }
+
 
     /**
      * 退出
