@@ -3,10 +3,16 @@ package com.sky.handler;
 import com.sky.exception.BaseException;
 import com.sky.result.Result;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.BindException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 全局异常处理器，处理项目中抛出的业务异常
@@ -20,10 +26,16 @@ public class GlobalExceptionHandler {
      * @param e
      * @return
      */
-    @ExceptionHandler(BindException.class)
-    public Result bindExceptionHandler(BindException e){
-        log.error("异常信息：{}", e.getMessage());
-        return Result.error(e.getMessage());
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Result methodArgumentNotValidExceptionHandler(MethodArgumentNotValidException e){
+        BindingResult bindingResult = e.getBindingResult();
+        Set<String> errorSet = new HashSet<>();
+        bindingResult.getFieldErrors().forEach(error -> {
+          errorSet.add(error.getDefaultMessage());
+        });
+
+        log.error("异常信息：{}", errorSet);
+        return Result.error(errorSet.toString());
     }
 
     /**

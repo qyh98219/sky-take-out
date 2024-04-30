@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -79,7 +80,8 @@ public class EmployeeController {
     }
 
     @PostMapping()
-    public Result addEmployee(@RequestBody @Valid EmployeeDTO employeeDTO, HttpServletRequest request){
+    @ApiOperation("员工添加")
+    public Result addEmployee(@RequestBody @Validated EmployeeDTO employeeDTO){
         // 检查用户名是否重复
         LambdaQueryWrapper<Employee> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Employee::getUsername, employeeDTO.getUsername());
@@ -97,8 +99,6 @@ public class EmployeeController {
         Long createUser = ThreadLocalUtil.threadLocal.get();
         employee.setCreateUser(createUser);
         employee.setUpdateUser(createUser);
-        employee.setUpdateTime(LocalDateTime.now());
-        employee.setCreateTime(LocalDateTime.now());
 
         if (!employeeService.save(employee)){
             return Result.error(MessageConstant.ACCOUNT_USER_SAVE_ERROR);
