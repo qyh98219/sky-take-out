@@ -11,6 +11,7 @@ import com.sky.service.ICategoryService;
 import com.sky.utils.ThreadLocalUtil;
 import com.sky.validiton.EnumValue;
 import com.sky.vo.PageResult;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
@@ -74,5 +75,21 @@ public class CategoryController {
         pageResult.setRecords(list);
         pageResult.setTotal(page.getTotal());
         return Result.success(pageResult);
+    }
+
+    @PostMapping("/status/{status}")
+    @ApiOperation("分类启用/禁用")
+    public Result updateStatus(@PathVariable Integer status, Integer id){
+        Category category = categoryService.getById(id);
+
+        if(Objects.isNull(category)) {
+            return Result.error("操作失败");
+        }
+
+        category.setStatus(status);
+        if(!categoryService.updateById(category)){
+            return Result.error("操作失败");
+        }
+        return Result.success();
     }
 }
