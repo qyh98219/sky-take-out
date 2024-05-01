@@ -3,11 +3,15 @@ package com.sky.controller.admin;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.CategoryDTO;
 import com.sky.entity.Category;
+import com.sky.entity.Dish;
+import com.sky.exception.DeletionNotAllowedException;
 import com.sky.result.Result;
 import com.sky.service.ICategoryService;
+import com.sky.service.IDishService;
 import com.sky.utils.ThreadLocalUtil;
 import com.sky.validiton.EnumValue;
 import com.sky.vo.PageResult;
@@ -37,6 +41,8 @@ public class CategoryController {
 
     @Autowired
     private ICategoryService categoryService;
+    @Autowired
+    private IDishService dishService;
 
     @PostMapping()
     @ApiOperation("/分类添加")
@@ -94,6 +100,7 @@ public class CategoryController {
     }
 
     @PutMapping()
+    @ApiOperation("更新分类")
     public Result updateCategory(@RequestBody CategoryDTO categoryDTO){
         Category category = new Category();
         BeanUtils.copyProperties(categoryDTO, category);
@@ -101,4 +108,20 @@ public class CategoryController {
         categoryService.updateById(category);
         return Result.success();
     }
+
+    @DeleteMapping()
+    @ApiOperation("删除分类")
+    public Result delCategory(Integer id){
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Dish::getCategoryId, id);
+        List<Dish> list = dishService.list(queryWrapper);
+        if(!list.isEmpty()){
+            throw new DeletionNotAllowedException("分类下有产品不可删除");
+        }
+        if(!categoryService.removeById(id)){
+            return Result.error("操作失败");
+        }
+        return Result.success("操作成功");
+    }
+
 }
