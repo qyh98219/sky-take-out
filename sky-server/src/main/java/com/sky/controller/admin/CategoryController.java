@@ -92,4 +92,13 @@ public class CategoryController {
         }
         return Result.success();
     }
+
+    @PutMapping()
+    public Result updateCategory(@RequestBody CategoryDTO categoryDTO){
+        Category category = new Category();
+        BeanUtils.copyProperties(categoryDTO, category);
+        category.setUpdateUser(ThreadLocalUtil.threadLocal.get());
+        categoryService.updateById(category);
+        return Result.success();
+    }
 }

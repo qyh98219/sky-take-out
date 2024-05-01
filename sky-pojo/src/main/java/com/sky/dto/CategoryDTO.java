@@ -26,7 +26,6 @@ public class CategoryDTO implements Serializable {
 
     //排序
     @NotNull
-    @Pattern(regexp = "^[0-99]*$", message = "排序必须为整数")
     private Integer sort;
 
 }
