@@ -8,6 +8,7 @@ import com.sky.constant.MessageConstant;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.entity.Employee;
+import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.UserNameExistException;
 import com.sky.properties.JwtProperties;
 import com.sky.result.Result;
@@ -116,6 +117,28 @@ public class EmployeeController {
         return Result.success(employeeListVO);
     }
 
+    /**
+     * @Author qyh
+     * @Description 禁用/启用员工账号
+     * @Date 9:19 2024/5/1
+     * @Param [status, empId]
+     * @return com.sky.result.Result
+     **/
+    @PostMapping("/status/{status}")
+    @ApiOperation("启用、禁用员工")
+    public Result updateEmployeeStatus(@PathVariable("status") Integer status, Integer id){
+        Employee employee = employeeService.getById(id);
+
+        if(Objects.isNull(employee)){
+            throw new AccountNotFoundException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+
+        employee.setStatus(status);
+        if(!employeeService.updateById(employee)){
+            return Result.error("操作失败");
+        }
+        return Result.error("操作成功");
+    }
 
     /**
      * 退出
