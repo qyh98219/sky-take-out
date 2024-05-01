@@ -140,6 +140,42 @@ public class EmployeeController {
         return Result.error("操作成功");
     }
 
+    @GetMapping("/{id}")
+    @ApiOperation("员工信息回显")
+    public Result<Employee> reviewEmployee(@PathVariable("id") Integer id){
+        Employee employee = employeeService.getById(id);
+
+        return Result.success(employee);
+    }
+
+    @PutMapping()
+    @ApiOperation("员工信息编辑")
+    public Result updateEmployee(@RequestBody @Validated Employee employee){
+        //判断是否有修改账号名，如果有要判断是否有重复
+        Employee oldEmployee = employeeService.getById(employee.getId());
+        if(Objects.isNull(oldEmployee)){
+            throw new AccountNotFoundException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+
+        //有修改账号名
+        if(!oldEmployee.getUsername().equals(employee.getUsername())){
+            LambdaQueryWrapper<Employee> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Employee::getName, employee.getName());
+
+            Employee one = employeeService.getOne(queryWrapper);
+            if (!Objects.isNull(one)){
+                throw new UserNameExistException(MessageConstant.ACCOUNT_USER_NAME_EXIST);
+            }
+        }
+
+
+
+        if(!employeeService.updateById(employee)){
+            return Result.error("操作失败");
+        }
+        return Result.success();
+    }
+
     /**
      * 退出
      *
