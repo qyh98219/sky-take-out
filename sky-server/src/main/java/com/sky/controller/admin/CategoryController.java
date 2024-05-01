@@ -51,9 +51,9 @@ public class CategoryController {
         category.setStatus(StatusConstant.ENABLE);
         BeanUtils.copyProperties(categoryDTO, category);
 
-        long empId = ThreadLocalUtil.threadLocal.get();
+        /*long empId = ThreadLocalUtil.threadLocal.get();
         category.setCreateUser(empId);
-        category.setUpdateUser(empId);
+        category.setUpdateUser(empId);*/
 
         categoryService.save(category);
         return Result.success();

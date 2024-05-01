@@ -1,6 +1,7 @@
 package com.sky.meta;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.sky.utils.ThreadLocalUtil;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 
@@ -20,10 +21,13 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
 
         this.strictInsertFill(metaObject,"createTime", LocalDateTime.class, LocalDateTime.now());
         this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        this.strictInsertFill(metaObject, "createUser", Long.class, ThreadLocalUtil.threadLocal.get());
+        this.strictInsertFill(metaObject, "updateUser", Long.class, ThreadLocalUtil.threadLocal.get());
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
         this.strictUpdateFill(metaObject,"updateTime", LocalDateTime.class, LocalDateTime.now());
+        this.strictInsertFill(metaObject, "updateUser", Long.class, ThreadLocalUtil.threadLocal.get());
     }
 }
