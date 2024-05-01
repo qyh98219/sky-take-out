@@ -1,22 +1,16 @@
 package com.sky.handler;
 
-import com.sky.constant.RedisConstant;
 import com.sky.exception.BaseException;
-import com.sky.exception.PasswordErrorException;
 import com.sky.result.Result;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.client.RestTemplate;
 
-import java.net.BindException;
-import java.util.HashMap;
+
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -30,8 +24,8 @@ public class GlobalExceptionHandler {
      * @param e
      * @return
      */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Result methodArgumentNotValidExceptionHandler(MethodArgumentNotValidException e){
+    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
+    public Result bindExceptionHandler(BindException e){
         BindingResult bindingResult = e.getBindingResult();
         Set<String> errorSet = new HashSet<>();
         bindingResult.getFieldErrors().forEach(error -> {

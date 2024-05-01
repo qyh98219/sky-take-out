@@ -1,7 +1,9 @@
 package com.sky.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.sky.entity.Category;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * <p>

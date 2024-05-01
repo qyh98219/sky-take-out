@@ -15,8 +15,8 @@ import com.sky.result.Result;
 import com.sky.service.IEmployeeService;
 import com.sky.utils.JwtUtil;
 import com.sky.utils.ThreadLocalUtil;
-import com.sky.vo.EmployeeListVO;
 import com.sky.vo.EmployeeLoginVO;
+import com.sky.vo.PageResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -108,13 +108,13 @@ public class EmployeeController {
 
     @GetMapping("/page")
     @ApiOperation("员工列表")
-    public Result<EmployeeListVO> employeeList(@RequestParam(defaultValue = "1") Integer page, @RequestParam(defaultValue = "10") Integer pageSize, @RequestParam(required = false) String name){
+    public Result<PageResult<Employee>> employeeList(@RequestParam(defaultValue = "1") Integer page, @RequestParam(defaultValue = "10") Integer pageSize, @RequestParam(required = false) String name){
         Page<Employee> myPage = new Page<>(page, pageSize);
         IPage<Employee> resultPage = this.employeeService.selectPage(myPage, name);
-        EmployeeListVO employeeListVO = new EmployeeListVO();
-        employeeListVO.setTotal(resultPage.getTotal());
-        employeeListVO.setRecords(resultPage.getRecords());
-        return Result.success(employeeListVO);
+        PageResult<Employee> pageResult = new PageResult<>();
+        pageResult.setTotal(resultPage.getTotal());
+        pageResult.setRecords(resultPage.getRecords());
+        return Result.success(pageResult);
     }
 
     /**

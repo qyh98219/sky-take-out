@@ -1,6 +1,5 @@
 package com.sky.vo;
 
-import com.sky.entity.Employee;
 import lombok.Data;
 
 import java.util.List;
@@ -13,7 +12,7 @@ import java.util.List;
  * @date 2024/4/30 14:37
  **/
 @Data
-public class EmployeeListVO {
+public class PageResult<T> {
     private Long total;
-    private List<Employee> records;
+    private List<T> records;
 }

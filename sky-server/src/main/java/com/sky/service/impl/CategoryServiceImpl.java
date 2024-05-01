@@ -1,9 +1,11 @@
 package com.sky.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.sky.entity.Category;
 import com.sky.mapper.CategoryMapper;
 import com.sky.service.ICategoryService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
