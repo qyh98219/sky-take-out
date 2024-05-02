@@ -119,4 +119,24 @@ public class DishController {
         }
         return Result.success("操作成功");
     }
+
+    @GetMapping("/{id}")
+    @ApiOperation("菜品信息回显")
+    public Result<DishVO> reviewDish(@PathVariable Integer id){
+        Dish dish = dishService.getById(id);
+
+        LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(DishFlavor::getDishId, id);
+        List<DishFlavor> dishFlavors = dishFlavorService.list(queryWrapper);
+
+        Category category = categoryService.getById(dish.getCategoryId());
+
+        DishVO dishVO = new DishVO();
+        BeanUtils.copyProperties(dish, dishVO);
+        dishVO.setCategoryName(category.getName());
+        dishVO.setFlavors(dishFlavors);
+
+        return Result.success(dishVO);
+    }
+
 }
