@@ -1,5 +1,7 @@
 package com.sky.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sky.entity.SetmealDish;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,11 +40,13 @@ public class SetmealVO implements Serializable {
     private String image;
 
     //更新时间
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 
     //分类名称
     private String categoryName;
 
     //套餐和菜品的关联关系
+    @JsonIgnore
     private List<SetmealDish> setmealDishes = new ArrayList<>();
 }
