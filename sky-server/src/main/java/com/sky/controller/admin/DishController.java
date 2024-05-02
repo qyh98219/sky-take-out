@@ -19,15 +19,13 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.poi.hssf.record.cf.IconMultiStateThreshold;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -55,12 +53,21 @@ public class DishController {
     @PostMapping("")
     @ApiOperation("新增菜单")
     public Result addDish(@RequestBody @Validated DishDTO dishDTO){
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Dish::getName, dishDTO.getName());
+        Dish one = dishService.getOne(queryWrapper);
+        if (Objects.nonNull(one)){
+            return Result.error("名字重复");
+        }
+
         Dish dish = new Dish();
         BeanUtils.copyProperties(dishDTO, dish);
         dish.setStatus(StatusConstant.DISABLE);
         dishService.save(dish);
-        List<DishFlavor> flavors = dishDTO.getFlavors().stream().peek(dishFlavor -> dishFlavor.setDishId(dish.getId())).toList();
-        dishFlavorService.insertBatchSomeColumn(flavors);
+        if (!dishDTO.getFlavors().isEmpty()){
+            List<DishFlavor> flavors = dishDTO.getFlavors().stream().peek(dishFlavor -> dishFlavor.setDishId(dish.getId())).toList();
+            dishFlavorService.insertBatchSomeColumn(flavors);
+        }
         return Result.success();
     }
 
@@ -148,8 +155,10 @@ public class DishController {
         queryWrapper.eq(DishFlavor::getDishId, dishDTO.getId());
         dishFlavorService.remove(queryWrapper);
 
-        List<DishFlavor> flavors = dishDTO.getFlavors().stream().peek(dishFlavor -> dishFlavor.setDishId(dishDTO.getId())).toList();
-        dishFlavorService.insertBatchSomeColumn(flavors);
+        if(!dishDTO.getFlavors().isEmpty()){
+            List<DishFlavor> flavors = dishDTO.getFlavors().stream().peek(dishFlavor -> dishFlavor.setDishId(dishDTO.getId())).toList();
+            dishFlavorService.insertBatchSomeColumn(flavors);
+        }
 
         Dish dish = new Dish();
         BeanUtils.copyProperties(dishDTO, dish);
@@ -158,5 +167,27 @@ public class DishController {
             return Result.error("操作失败");
         }
         return Result.success("操作成功");
+    }
+
+    @DeleteMapping()
+    @ApiOperation("菜品删除")
+    public Result<String> delDish(String ids){
+        String[] idArr = ids.split(",");
+        List<String> idList = Arrays.stream(idArr).filter(dishId -> {
+            Dish dish = dishService.getById(dishId);
+            LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(SetmealDish::getDishId, dishId);
+            List<SetmealDish> setmealDishes = setmealDishService.list(queryWrapper);
+            if(dish.getStatus().equals(StatusConstant.ENABLE) || !setmealDishes.isEmpty()) {
+                 return false;
+            }
+            return true;
+        }).toList();
+
+        if(!dishService.removeBatchByIds(idList)){
+            return Result.error("操作失败");
+        }
+        return Result.success("操作成功");
+
     }
 }
