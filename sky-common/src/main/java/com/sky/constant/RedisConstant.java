@@ -8,5 +8,6 @@ package com.sky.constant;
  * @date 2024/4/30 15:58
  **/
 public class RedisConstant {
-    public static final String LOGIN_ERROR_COUNT = "login_error_count";
+    public static final String LOGIN_ERROR_COUNT = "LOGIN_ERROR_COUNT";
+    public static final String SHOP_STATUS = "SHOP_STATUS";
 }
