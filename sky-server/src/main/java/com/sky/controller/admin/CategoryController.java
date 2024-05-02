@@ -51,10 +51,6 @@ public class CategoryController {
         category.setStatus(StatusConstant.ENABLE);
         BeanUtils.copyProperties(categoryDTO, category);
 
-        /*long empId = ThreadLocalUtil.threadLocal.get();
-        category.setCreateUser(empId);
-        category.setUpdateUser(empId);*/
-
         categoryService.save(category);
         return Result.success();
     }
@@ -122,6 +118,15 @@ public class CategoryController {
             return Result.error("操作失败");
         }
         return Result.success("操作成功");
+    }
+
+    @GetMapping("/list")
+    public Result<List<Category>> listByTypeId(Integer type){
+        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Category::getType, type);
+
+        List<Category> list = categoryService.list(queryWrapper);
+        return Result.success(list);
     }
 
 }

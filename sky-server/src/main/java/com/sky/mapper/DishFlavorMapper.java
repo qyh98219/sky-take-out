@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author baomidou
  * @since 2024-04-29
  */
-public interface DishFlavorMapper extends BaseMapper<DishFlavor> {
+public interface DishFlavorMapper extends CommonMapper<DishFlavor> {
 
 }

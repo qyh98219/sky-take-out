@@ -7,6 +7,8 @@ import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * <p>
  * 菜品口味关系表
@@ -29,9 +31,11 @@ public class DishFlavor implements Serializable {
     private Long dishId;
 
     @ApiModelProperty("口味名称")
+    @NotNull
     private String name;
 
     @ApiModelProperty("口味数据list")
+    @NotNull
     private String value;
 
     public Long getId() {

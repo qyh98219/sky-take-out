@@ -3,6 +3,8 @@ package com.sky.service;
 import com.sky.entity.DishFlavor;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * <p>
  * 菜品口味关系表 服务类
@@ -13,4 +15,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IDishFlavorService extends IService<DishFlavor> {
 
+    int insertBatchSomeColumn(List<DishFlavor> entiyList);
 }
