@@ -2,6 +2,7 @@ package com.sky.controller.admin;
 
 import com.baomidou.mybatisplus.core.batch.MybatisBatch;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.Query;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.MybatisBatchUtils;
@@ -14,6 +15,7 @@ import com.sky.result.Result;
 import com.sky.service.*;
 import com.sky.vo.DishVO;
 import com.sky.vo.PageResult;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -139,4 +141,22 @@ public class DishController {
         return Result.success(dishVO);
     }
 
+    @PutMapping()
+    @ApiOperation("菜品修改")
+    public Result<String> updateDish(@RequestBody @Validated DishDTO dishDTO){
+        LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(DishFlavor::getDishId, dishDTO.getId());
+        dishFlavorService.remove(queryWrapper);
+
+        List<DishFlavor> flavors = dishDTO.getFlavors().stream().peek(dishFlavor -> dishFlavor.setDishId(dishDTO.getId())).toList();
+        dishFlavorService.insertBatchSomeColumn(flavors);
+
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dishDTO, dish);
+
+        if(!dishService.updateById(dish)){
+            return Result.error("操作失败");
+        }
+        return Result.success("操作成功");
+    }
 }
