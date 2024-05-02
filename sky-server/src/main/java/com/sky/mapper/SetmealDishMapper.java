@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author baomidou
  * @since 2024-04-29
  */
-public interface SetmealDishMapper extends BaseMapper<SetmealDish> {
+public interface SetmealDishMapper extends CommonMapper<SetmealDish> {
 
 }

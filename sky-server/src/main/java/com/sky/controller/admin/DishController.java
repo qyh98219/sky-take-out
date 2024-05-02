@@ -188,6 +188,13 @@ public class DishController {
             return Result.error("操作失败");
         }
         return Result.success("操作成功");
+    }
 
+    @GetMapping("/list")
+    public Result<List<Dish>> listByCategoryId(Integer categoryId){
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Dish::getCategoryId, categoryId);
+        List<Dish> list = dishService.list(queryWrapper);
+        return Result.success(list);
     }
 }
