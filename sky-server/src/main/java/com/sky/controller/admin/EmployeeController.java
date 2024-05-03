@@ -184,7 +184,6 @@ public class EmployeeController {
     @PostMapping("/logout")
     @ApiOperation("员工登出")
     public Result<String> logout() {
-        threadLocal.remove();
         return Result.success();
     }
 
