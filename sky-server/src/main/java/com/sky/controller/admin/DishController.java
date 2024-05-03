@@ -11,6 +11,7 @@ import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.*;
+import com.sky.properties.JwtProperties;
 import com.sky.result.Result;
 import com.sky.service.*;
 import com.sky.vo.DishVO;
@@ -22,10 +23,14 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.poi.hssf.record.cf.IconMultiStateThreshold;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,6 +57,8 @@ public class DishController {
     private ISetmealDishService setmealDishService;
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private JwtProperties jwtProperties;
 
     @PostMapping("")
     @ApiOperation("新增菜单")
@@ -113,7 +120,7 @@ public class DishController {
             //对包含菜品的相关套餐也禁售
             LambdaQueryWrapper<SetmealDish> sdQueryWrapper = new LambdaQueryWrapper<>();
             sdQueryWrapper.eq(SetmealDish::getDishId, id);
-            List<SetmealDish> setmealDishes = setmealDishService.list();
+            List<SetmealDish> setmealDishes = setmealDishService.list(sdQueryWrapper);
             if(!setmealDishes.isEmpty()){
                 setmealDishes.forEach(setmealDish -> {
                     Setmeal setmeal = setmealService.getById(setmealDish.getSetmealId());
@@ -174,7 +181,7 @@ public class DishController {
 
     @DeleteMapping()
     @ApiOperation("菜品删除")
-    public Result<String> delDish(String ids){
+    public Result<String> delDish(String ids, HttpServletRequest request){
         String[] idArr = ids.split(",");
         List<String> idList = Arrays.stream(idArr).filter(dishId -> {
             Dish dish = dishService.getById(dishId);
@@ -184,18 +191,30 @@ public class DishController {
             return false;
         }).toList();
 
-        List<Long> setmealId = new ArrayList<>();
+        if (idList.isEmpty()){
+            return Result.error("无法删除在售菜品");
+        }
+
+        StringBuffer sb = new StringBuffer();
         //删除对应的套餐
         idList.forEach(id -> {
             LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(SetmealDish::getDishId, id);
             List<SetmealDish> setmealDishes = setmealDishService.list(queryWrapper);
             setmealDishes.forEach(setmealDish -> {
-                setmealId.add(setmealDish.getSetmealId());
+                sb.append(setmealDish.getSetmealId()).append(",");
             });
         });
+        String setmealIds = sb.toString();
+        String replace = setmealIds.replace(setmealIds.charAt(setmealIds.lastIndexOf(",")), ' ');
+        setmealIds = replace.trim();
         //调用套餐删除
-        restTemplate.delete("http://localhost:8080/admin/setmeal", setmealId.toArray());
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(jwtProperties.getAdminTokenName(), request.getHeader(jwtProperties.getAdminTokenName()));
+        HttpEntity<String> httpEntity = new HttpEntity<>(httpHeaders);
+        Map<String,Object> paramMap = new HashMap<>(1);
+        paramMap.put("ids", setmealIds);
+        restTemplate.exchange("http://localhost:8080/admin/setmeal?ids={ids}", HttpMethod.DELETE,httpEntity, String.class, paramMap);
 
         //删除对应的口味关系
         idList.forEach(id -> {

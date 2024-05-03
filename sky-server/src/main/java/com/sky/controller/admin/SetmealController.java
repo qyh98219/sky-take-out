@@ -180,6 +180,10 @@ public class SetmealController {
             return false;
         }).toList();
 
+        if (list.isEmpty()){
+            return Result.error("无法删除在售套餐");
+        }
+
         //删除对应的菜品关系
         list.forEach(id -> {
             LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
