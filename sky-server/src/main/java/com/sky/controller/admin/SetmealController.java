@@ -7,10 +7,7 @@ import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
-import com.sky.entity.Category;
-import com.sky.entity.Dish;
-import com.sky.entity.Setmeal;
-import com.sky.entity.SetmealDish;
+import com.sky.entity.*;
 import com.sky.exception.SetmealEnableFailedException;
 import com.sky.result.Result;
 import com.sky.service.ICategoryService;
@@ -182,6 +179,16 @@ public class SetmealController {
             }
             return false;
         }).toList();
+
+        //删除对应的菜品关系
+        list.forEach(id -> {
+            LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(SetmealDish::getSetmealId, id);
+            List<SetmealDish> setmealDishes = setmealDishService.list(queryWrapper);
+            if (!setmealDishes.isEmpty()){
+                setmealDishService.removeBatchByIds(setmealDishes);
+            }
+        });
 
         if(!setmealService.removeBatchByIds(list)){
             return Result.error("操作失败");

@@ -24,6 +24,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,6 +50,8 @@ public class DishController {
     private ISetmealService setmealService;
     @Autowired
     private ISetmealDishService setmealDishService;
+    @Autowired
+    private RestTemplate restTemplate;
 
     @PostMapping("")
     @ApiOperation("新增菜单")
@@ -175,14 +178,34 @@ public class DishController {
         String[] idArr = ids.split(",");
         List<String> idList = Arrays.stream(idArr).filter(dishId -> {
             Dish dish = dishService.getById(dishId);
-            LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(SetmealDish::getDishId, dishId);
-            List<SetmealDish> setmealDishes = setmealDishService.list(queryWrapper);
-            if(dish.getStatus().equals(StatusConstant.ENABLE) || !setmealDishes.isEmpty()) {
-                 return false;
+            if(Objects.nonNull(dish) && dish.getStatus().equals(StatusConstant.DISABLE)) {
+                 return true;
             }
-            return true;
+            return false;
         }).toList();
+
+        List<Long> setmealId = new ArrayList<>();
+        //删除对应的套餐
+        idList.forEach(id -> {
+            LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(SetmealDish::getDishId, id);
+            List<SetmealDish> setmealDishes = setmealDishService.list(queryWrapper);
+            setmealDishes.forEach(setmealDish -> {
+                setmealId.add(setmealDish.getSetmealId());
+            });
+        });
+        //调用套餐删除
+        restTemplate.delete("http://localhost:8080/admin/setmeal", setmealId.toArray());
+
+        //删除对应的口味关系
+        idList.forEach(id -> {
+            LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(DishFlavor::getDishId, id);
+            List<DishFlavor> dishFlavors = dishFlavorService.list(queryWrapper);
+            if (!dishFlavors.isEmpty()){
+                dishFlavorService.removeBatchByIds(dishFlavors);
+            }
+        });
 
         if(!dishService.removeBatchByIds(idList)){
             return Result.error("操作失败");
