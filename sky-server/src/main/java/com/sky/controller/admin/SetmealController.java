@@ -3,14 +3,18 @@ package com.sky.controller.admin;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
 import com.sky.entity.Category;
+import com.sky.entity.Dish;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
+import com.sky.exception.SetmealEnableFailedException;
 import com.sky.result.Result;
 import com.sky.service.ICategoryService;
+import com.sky.service.IDishService;
 import com.sky.service.ISetmealDishService;
 import com.sky.service.ISetmealService;
 import com.sky.vo.PageResult;
@@ -44,6 +48,8 @@ public class SetmealController {
     private ISetmealDishService setmealDishService;
     @Autowired
     private ICategoryService categoryService;
+    @Autowired
+    private IDishService dishService;
 
     @PostMapping("")
     @ApiOperation("添加套餐")
@@ -95,5 +101,76 @@ public class SetmealController {
         pageResult.setTotal(page.getTotal());
         pageResult.setRecords(records);
         return Result.success(pageResult);
+    }
+
+    @PostMapping("/status/{status}")
+    @ApiOperation("套餐起售/禁售")
+    public Result updateStatus(@PathVariable Integer status, Integer id){
+       if (status.equals(StatusConstant.ENABLE)){
+           LambdaQueryWrapper<SetmealDish> setmealDishLambdaQueryWrapper = new LambdaQueryWrapper<>();
+           setmealDishLambdaQueryWrapper.eq(SetmealDish::getSetmealId, id);
+           List<SetmealDish> setmealDishes = setmealDishService.list(setmealDishLambdaQueryWrapper);
+           setmealDishes.stream().forEach(setmealDish -> {
+               Long dishId = setmealDish.getDishId();
+               Dish dish = dishService.getById(dishId);
+               if (Objects.nonNull(dish) && dish.getStatus().equals(StatusConstant.DISABLE)){
+                   throw new SetmealEnableFailedException(MessageConstant.SETMEAL_ENABLE_FAILED);
+               }
+           });
+       }
+
+        Setmeal setmeal = setmealService.getById(id);
+        setmeal.setStatus(status);
+        if(!setmealService.updateById(setmeal)){
+            return Result.error("操作失败");
+        }
+        return Result.success("操作成功");
+    }
+
+    @GetMapping("/{id}")
+    @ApiOperation("套餐信息回显")
+    public Result<SetmealVO> reviewSetmealInfo(@PathVariable Integer id){
+        Setmeal setmeal = setmealService.getById(id);
+        if(Objects.isNull(setmeal)){
+            throw new RuntimeException("非法参数");
+        }
+
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SetmealDish::getSetmealId, setmeal.getId());
+        List<SetmealDish> setmealDishes = setmealDishService.list(queryWrapper);
+
+        SetmealVO setmealVO = new SetmealVO();
+        BeanUtils.copyProperties(setmeal, setmealVO);
+        setmealVO.setSetmealDishes(setmealDishes);
+        return Result.success(setmealVO);
+    }
+
+    @PutMapping()
+    @ApiOperation("套餐修改")
+    public Result<String> updateSetmeal(@RequestBody SetmealDTO setmealDTO){
+        Setmeal oldSetmeal = setmealService.getById(setmealDTO.getId());
+        if (!oldSetmeal.getName().equals(setmealDTO.getName())){
+            LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Setmeal::getName, setmealDTO.getName());
+            Setmeal one = setmealService.getOne(queryWrapper);
+            if (Objects.nonNull(one)){
+                return Result.error("名称重复");
+            }
+        }
+
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SetmealDish::getSetmealId, setmealDTO.getId());
+        List<SetmealDish> oldSetmealDishes = setmealDishService.list(queryWrapper);
+        if (!oldSetmealDishes.isEmpty()){
+            setmealDishService.removeBatchByIds(oldSetmealDishes);
+        }
+
+        List<SetmealDish> setmealDishes = setmealDTO.getSetmealDishes().stream().peek(setmealDish -> setmealDish.setSetmealId(setmealDTO.getId())).toList();
+        setmealDishService.insertBatchSomeColumn(setmealDishes);
+
+        Setmeal setmeal = new Setmeal();
+        BeanUtils.copyProperties(setmealDTO, setmeal);
+        setmealService.updateById(setmeal);
+        return Result.success();
     }
 }
