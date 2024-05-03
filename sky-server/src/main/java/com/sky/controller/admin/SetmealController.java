@@ -26,10 +26,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @ClassName SetmealController
@@ -173,4 +170,25 @@ public class SetmealController {
         setmealService.updateById(setmeal);
         return Result.success();
     }
+
+    @DeleteMapping()
+    @ApiOperation("套餐删除")
+    public Result delSetmeal(String ids){
+        String[] idArr = ids.split(",");
+        List<String> list = Arrays.stream(idArr).filter(id -> {
+            Setmeal setmeal = setmealService.getById(id);
+            if (Objects.nonNull(setmeal) && setmeal.getStatus().equals(StatusConstant.DISABLE)) {
+                return true;
+            }
+            return false;
+        }).toList();
+
+        if(!setmealService.removeBatchByIds(list)){
+            return Result.error("操作失败");
+        }else {
+            return Result.success("操作成功");
+        }
+    }
+
+
 }
