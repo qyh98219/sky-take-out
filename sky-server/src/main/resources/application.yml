@@ -43,6 +43,12 @@ sky:
     admin-ttl: 7200000
     # 设置前端传递过来的令牌名称
     admin-token-name: token
+    user-secret-key: itheima
+    user-ttl: 7200000
+    user-token-name: authentication
   fileServer:
     rootPath: D://skyImages
     reqRootPath: http://localhost:9090/images
+  wechat:
+    appid: wx54e9345c4aa5c8f1
+    secret: 4f467fafa50f037de5c457d1d845a62b
