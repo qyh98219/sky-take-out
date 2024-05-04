@@ -21,13 +21,13 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
 
         this.strictInsertFill(metaObject,"createTime", LocalDateTime.class, LocalDateTime.now());
         this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
-        this.strictInsertFill(metaObject, "createUser", Long.class, ThreadLocalUtil.threadLocal.get());
-        this.strictInsertFill(metaObject, "updateUser", Long.class, ThreadLocalUtil.threadLocal.get());
+        this.strictInsertFill(metaObject, "createUser", Long.class, (Long)ThreadLocalUtil.get("admin_user_id"));
+        this.strictInsertFill(metaObject, "updateUser", Long.class, (Long)ThreadLocalUtil.get("admin_user_id"));
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
         this.strictUpdateFill(metaObject,"updateTime", LocalDateTime.class, LocalDateTime.now());
-        this.strictInsertFill(metaObject, "updateUser", Long.class, ThreadLocalUtil.threadLocal.get());
+        this.strictInsertFill(metaObject, "updateUser", Long.class, (Long)ThreadLocalUtil.get("admin_user_id"));
     }
 }

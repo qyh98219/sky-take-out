@@ -52,6 +52,11 @@ public class SetmealController {
     @PostMapping("")
     @ApiOperation("添加套餐")
     public Result saveSetmeal(@RequestBody SetmealDTO setmealDTO){
+        //删除缓存
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(RedisConstant.CAHE_SHOP))){
+            redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP);
+        }
+
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Setmeal::getName, setmealDTO.getName());
         Setmeal one = setmealService.getOne(queryWrapper);
@@ -122,8 +127,10 @@ public class SetmealController {
         if(!setmealService.updateById(setmeal)){
             return Result.error("操作失败");
         }
-        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "setmeal_" + setmeal.getCategoryId());
-        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "dishItem_" + setmeal.getId());
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(RedisConstant.CAHE_SHOP))){
+            redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "setmeal_" + setmeal.getCategoryId());
+            redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "dishItem_" + setmeal.getId());
+        }
         return Result.success("操作成功");
     }
 
@@ -172,8 +179,10 @@ public class SetmealController {
         BeanUtils.copyProperties(setmealDTO, setmeal);
         setmealService.updateById(setmeal);
 
-        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "setmeal_" + setmeal.getCategoryId());
-        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "dishItem_" + setmeal.getId());
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(RedisConstant.CAHE_SHOP))){
+            redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "setmeal_" + setmeal.getCategoryId());
+            redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "dishItem_" + setmeal.getId());
+        }
         return Result.success();
     }
 
@@ -184,8 +193,10 @@ public class SetmealController {
         List<String> list = Arrays.stream(idArr).filter(id -> {
             Setmeal setmeal = setmealService.getById(id);
             if (Objects.nonNull(setmeal) && setmeal.getStatus().equals(StatusConstant.DISABLE)) {
-                redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "setmeal_" + setmeal.getCategoryId());
-                redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "dishItem_" + setmeal.getId());
+                if (Boolean.TRUE.equals(redisTemplate.hasKey(RedisConstant.CAHE_SHOP))){
+                    redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "setmeal_" + setmeal.getCategoryId());
+                    redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "dishItem_" + setmeal.getId());
+                }
                 return true;
             }
             return false;

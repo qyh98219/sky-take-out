@@ -28,6 +28,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -67,6 +68,11 @@ public class DishController {
     @PostMapping("")
     @ApiOperation("新增菜单")
     public Result addDish(@RequestBody @Validated DishDTO dishDTO){
+        //删除缓存
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(RedisConstant.CAHE_SHOP))){
+            redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP);
+        }
+
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Dish::getName, dishDTO.getName());
         Dish one = dishService.getOne(queryWrapper);
@@ -141,7 +147,9 @@ public class DishController {
             return Result.error("操作失败");
         }
         //删除缓存
-        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(RedisConstant.CAHE_SHOP))){
+            redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP);
+        }
         return Result.success("操作成功");
     }
 
@@ -183,7 +191,9 @@ public class DishController {
             return Result.error("操作失败");
         }
         //删除缓存
-        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(RedisConstant.CAHE_SHOP))){
+            redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP);
+        }
         return Result.success("操作成功");
     }
 
@@ -214,15 +224,17 @@ public class DishController {
             });
         });
         String setmealIds = sb.toString();
-        String replace = setmealIds.replace(setmealIds.charAt(setmealIds.lastIndexOf(",")), ' ');
-        setmealIds = replace.trim();
-        //调用套餐删除
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(jwtProperties.getAdminTokenName(), request.getHeader(jwtProperties.getAdminTokenName()));
-        HttpEntity<String> httpEntity = new HttpEntity<>(httpHeaders);
-        Map<String,Object> paramMap = new HashMap<>(1);
-        paramMap.put("ids", setmealIds);
-        restTemplate.exchange("http://localhost:8080/admin/setmeal?ids={ids}", HttpMethod.DELETE,httpEntity, String.class, paramMap);
+        if (StringUtils.hasText(setmealIds)){
+            String replace = setmealIds.replace(setmealIds.charAt(setmealIds.lastIndexOf(",")), ' ');
+            setmealIds = replace.trim();
+            //调用套餐删除
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.add(jwtProperties.getAdminTokenName(), request.getHeader(jwtProperties.getAdminTokenName()));
+            HttpEntity<String> httpEntity = new HttpEntity<>(httpHeaders);
+            Map<String,Object> paramMap = new HashMap<>(1);
+            paramMap.put("ids", setmealIds);
+            restTemplate.exchange("http://localhost:8080/admin/setmeal?ids={ids}", HttpMethod.DELETE,httpEntity, String.class, paramMap);
+        }
 
         //删除对应的口味关系
         idList.forEach(id -> {
@@ -239,7 +251,9 @@ public class DishController {
         }
 
         //删除缓存
-        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(RedisConstant.CAHE_SHOP))){
+            redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP);
+        }
         return Result.success("操作成功");
     }
 

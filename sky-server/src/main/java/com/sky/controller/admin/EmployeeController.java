@@ -96,7 +96,7 @@ public class EmployeeController {
         employee.setPassword(DigestUtils.md5DigestAsHex("123456".getBytes(StandardCharsets.UTF_8)));
         BeanUtils.copyProperties(employeeDTO, employee);
         //获取当前登录用户id
-        Long createUser = ThreadLocalUtil.threadLocal.get();
+        Long createUser = (Long) ThreadLocalUtil.get("admin_user_id");
         employee.setCreateUser(createUser);
         employee.setUpdateUser(createUser);
 

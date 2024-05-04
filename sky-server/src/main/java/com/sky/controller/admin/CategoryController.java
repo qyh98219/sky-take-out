@@ -100,7 +100,7 @@ public class CategoryController {
     public Result updateCategory(@RequestBody CategoryDTO categoryDTO){
         Category category = new Category();
         BeanUtils.copyProperties(categoryDTO, category);
-        category.setUpdateUser(ThreadLocalUtil.threadLocal.get());
+        category.setUpdateUser((Long) ThreadLocalUtil.get("admin_user_id"));
         categoryService.updateById(category);
         return Result.success();
     }
