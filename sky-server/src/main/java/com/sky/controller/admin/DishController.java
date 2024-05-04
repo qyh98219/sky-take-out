@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.MybatisBatchUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sky.constant.RedisConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
@@ -23,6 +24,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.poi.hssf.record.cf.IconMultiStateThreshold;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -59,6 +61,8 @@ public class DishController {
     private RestTemplate restTemplate;
     @Autowired
     private JwtProperties jwtProperties;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @PostMapping("")
     @ApiOperation("新增菜单")
@@ -136,6 +140,8 @@ public class DishController {
         if(!dishService.update(dishLambdaUpdateWrapper)) {
             return Result.error("操作失败");
         }
+        //删除缓存
+        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP);
         return Result.success("操作成功");
     }
 
@@ -176,6 +182,8 @@ public class DishController {
         if(!dishService.updateById(dish)){
             return Result.error("操作失败");
         }
+        //删除缓存
+        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP);
         return Result.success("操作成功");
     }
 
@@ -229,6 +237,9 @@ public class DishController {
         if(!dishService.removeBatchByIds(idList)){
             return Result.error("操作失败");
         }
+
+        //删除缓存
+        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP);
         return Result.success("操作成功");
     }
 

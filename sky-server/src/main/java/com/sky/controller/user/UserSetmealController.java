@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.sky.constant.RedisConstant;
+import com.sky.constant.StatusConstant;
+import com.sky.entity.Dish;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.json.JacksonObjectMapper;
@@ -15,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,14 +55,20 @@ public class UserSetmealController {
             log.info("套餐缓存未生效");
             LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(Setmeal::getCategoryId, categoryId);
+            queryWrapper.eq(Setmeal::getStatus, StatusConstant.ENABLE);
             setmeals = setmealService.list(queryWrapper);
-            String cacheData = objectMapper.writeValueAsString(setmeals);
-            redisTemplate.opsForHash().put(RedisConstant.CAHE_SHOP, "setmeal_"+categoryId, cacheData);
+            //查询出的数据存入缓存
+            if (!setmeals.isEmpty()) {
+                String cacheData = objectMapper.writeValueAsString(setmeals);
+                redisTemplate.opsForHash().put(RedisConstant.CAHE_SHOP, "setmeal_" + categoryId, cacheData);
+            }
         }
 
         String cacheData = (String) redisTemplate.opsForHash().get(RedisConstant.CAHE_SHOP, "setmeal_" + categoryId);
-        setmeals = objectMapper.readValue(cacheData, new TypeReference<>() {
-        });
+        if (StringUtils.hasText(cacheData)) {
+            setmeals = objectMapper.readValue(cacheData, new TypeReference<>() {
+            });
+        }
         return Result.success(setmeals);
     }
 
@@ -74,17 +83,21 @@ public class UserSetmealController {
             queryWrapper.eq(SetmealDish::getSetmealId, id);
             List<SetmealDish> setmealDishes = setmealDishService.list(queryWrapper);
             dishItemVOS = new ArrayList<>(setmealDishes.size());
-            for(SetmealDish setmealDish:setmealDishes){
+            for (SetmealDish setmealDish : setmealDishes) {
                 DishItemVO dishItemVO = new DishItemVO();
                 BeanUtils.copyProperties(setmealDish, dishItemVO);
                 dishItemVOS.add(dishItemVO);
             }
-            String cacheData = objectMapper.writeValueAsString(dishItemVOS);
-            redisTemplate.opsForHash().put(RedisConstant.CAHE_SHOP, "dishItem_"+id, cacheData);
+            if (!dishItemVOS.isEmpty()) {
+                String cacheData = objectMapper.writeValueAsString(dishItemVOS);
+                redisTemplate.opsForHash().put(RedisConstant.CAHE_SHOP, "dishItem_" + id, cacheData);
+            }
         }
         String cacheData = (String) redisTemplate.opsForHash().get(RedisConstant.CAHE_SHOP, "dishItem_"+id);
-        dishItemVOS = objectMapper.readValue(cacheData, new TypeReference<>() {
-        });
+        if (StringUtils.hasText(cacheData)) {
+            dishItemVOS = objectMapper.readValue(cacheData, new TypeReference<>() {
+            });
+        }
         return Result.success(dishItemVOS);
     }
 }

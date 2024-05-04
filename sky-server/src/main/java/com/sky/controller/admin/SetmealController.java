@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sky.constant.MessageConstant;
+import com.sky.constant.RedisConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
@@ -16,11 +17,12 @@ import com.sky.service.ISetmealDishService;
 import com.sky.service.ISetmealService;
 import com.sky.vo.PageResult;
 import com.sky.vo.SetmealVO;
-import io.swagger.annotations.Api;
+
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -44,6 +46,8 @@ public class SetmealController {
     private ICategoryService categoryService;
     @Autowired
     private IDishService dishService;
+    @Autowired
+    private RedisTemplate<String,Object> redisTemplate;
 
     @PostMapping("")
     @ApiOperation("添加套餐")
@@ -118,6 +122,8 @@ public class SetmealController {
         if(!setmealService.updateById(setmeal)){
             return Result.error("操作失败");
         }
+        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "setmeal_" + setmeal.getCategoryId());
+        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "dishItem_" + setmeal.getId());
         return Result.success("操作成功");
     }
 
@@ -165,6 +171,9 @@ public class SetmealController {
         Setmeal setmeal = new Setmeal();
         BeanUtils.copyProperties(setmealDTO, setmeal);
         setmealService.updateById(setmeal);
+
+        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "setmeal_" + setmeal.getCategoryId());
+        redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "dishItem_" + setmeal.getId());
         return Result.success();
     }
 
@@ -175,6 +184,8 @@ public class SetmealController {
         List<String> list = Arrays.stream(idArr).filter(id -> {
             Setmeal setmeal = setmealService.getById(id);
             if (Objects.nonNull(setmeal) && setmeal.getStatus().equals(StatusConstant.DISABLE)) {
+                redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "setmeal_" + setmeal.getCategoryId());
+                redisTemplate.opsForHash().delete(RedisConstant.CAHE_SHOP, "dishItem_" + setmeal.getId());
                 return true;
             }
             return false;
@@ -196,9 +207,9 @@ public class SetmealController {
 
         if(!setmealService.removeBatchByIds(list)){
             return Result.error("操作失败");
-        }else {
-            return Result.success("操作成功");
         }
+
+        return Result.success("操作成功");
     }
 
 
