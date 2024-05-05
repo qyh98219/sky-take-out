@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -38,9 +41,11 @@ public class Orders implements Serializable {
     private Long addressBookId;
 
     @ApiModelProperty("下单时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime orderTime;
 
     @ApiModelProperty("结账时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime checkoutTime;
 
     @ApiModelProperty("支付方式 1微信,2支付宝")
@@ -74,6 +79,7 @@ public class Orders implements Serializable {
     private String rejectionReason;
 
     @ApiModelProperty("订单取消时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime cancelTime;
 
     @ApiModelProperty("预计送达时间")
@@ -83,6 +89,7 @@ public class Orders implements Serializable {
     private Boolean deliveryStatus;
 
     @ApiModelProperty("送达时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime deliveryTime;
 
     @ApiModelProperty("打包费")
