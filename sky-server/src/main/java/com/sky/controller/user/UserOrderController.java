@@ -76,19 +76,15 @@ public class UserOrderController {
         List<OrderDetail> orderDetails = new ArrayList<>();
         OrderSubmitVO orderSubmitVO = new OrderSubmitVO();
         orderSubmitVO.setId(orders.getId());
-        Integer orderNumber = 0;
-        BigDecimal orderAmount = new BigDecimal("0");
         for (ShoppingCart shoppingCart: shoppingCarts){
             //保存订单详细
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setOrderId(orders.getId());
             BeanUtils.copyProperties(shoppingCart, orderDetail);
             orderDetails.add(orderDetail);
-            orderNumber += orderDetail.getNumber();
-            orderAmount = orderAmount.add(orderDetail.getAmount());
         }
-        orderSubmitVO.setOrderNumber(String.valueOf(orderNumber));
-        orderSubmitVO.setOrderAmount(orderAmount);
+        orderSubmitVO.setOrderNumber(orders.getNumber());
+        orderSubmitVO.setOrderAmount(submitDTO.getAmount());
         orderSubmitVO.setOrderTime(orderTime);
         orderDetailService.insertBatchSomeColumn(orderDetails);
         return Result.success(orderSubmitVO);
