@@ -1,10 +1,13 @@
 package com.sky.controller.user;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sky.constant.MessageConstant;
+import com.sky.constant.OrderStatusConstant;
+import com.sky.constant.PayStatusConstant;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
@@ -61,6 +64,8 @@ public class UserOrderController {
         orders.setNumber(OrderNumberUtil.generateOrderNumber());
         String address = addressBook.getProvinceName() + addressBook.getCityName() + addressBook.getDistrictName()+addressBook.getDetail();
         orders.setAddress(address);
+        orders.setStatus(OrderStatusConstant.PENDING_PAYMENT);
+        orders.setPayStatus(PayStatusConstant.UN_PAID);
         if(!ordersService.save(orders)){
             throw new OrderBusinessException("下单失败");
         }
@@ -127,5 +132,18 @@ public class UserOrderController {
         List<OrderDetail> orderDetails = orderDetailService.list(queryWrapper);
         orderVO.setOrderDetailList(orderDetails);
         return Result.success(orderVO);
+    }
+
+    @PutMapping("/cancel/{id}")
+    public Result cancelOrder(@PathVariable Integer id){
+        LambdaUpdateWrapper<Orders> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(Orders::getId, id);
+        updateWrapper.set(Orders::getStatus, OrderStatusConstant.CANCEL);
+        updateWrapper.set(Orders::getCancelReason, "用户取消");
+        updateWrapper.set(Orders::getCancelTime, LocalDateTime.now());
+        if(!ordersService.update(updateWrapper)){
+            Result.error("操作失败");
+        }
+        return Result.success("操作成功");
     }
 }
