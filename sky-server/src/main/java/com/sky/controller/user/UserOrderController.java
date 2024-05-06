@@ -13,12 +13,10 @@ import com.sky.result.Result;
 import com.sky.service.*;
 import com.sky.utils.OrderNumberUtil;
 import com.sky.utils.ThreadLocalUtil;
-import com.sky.vo.OrderHistoryVO;
-import com.sky.vo.OrderStatisticsVO;
-import com.sky.vo.OrderSubmitVO;
-import com.sky.vo.PageResult;
+import com.sky.vo.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -116,5 +114,18 @@ public class UserOrderController {
         pageResult.setRecords(orderHistoryVOS);
         pageResult.setTotal(page.getTotal());
         return Result.success(pageResult);
+    }
+
+    @GetMapping("/orderDetail/{id}")
+    public Result<OrderVO> getOrderDetial(@PathVariable Integer id){
+        Orders orders = ordersService.getById(id);
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(orders, orderVO);
+
+        LambdaQueryWrapper<OrderDetail> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(OrderDetail::getOrderId, id);
+        List<OrderDetail> orderDetails = orderDetailService.list(queryWrapper);
+        orderVO.setOrderDetailList(orderDetails);
+        return Result.success(orderVO);
     }
 }

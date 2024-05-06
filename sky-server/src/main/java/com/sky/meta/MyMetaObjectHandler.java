@@ -1,6 +1,7 @@
 package com.sky.meta;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.sky.entity.User;
 import com.sky.utils.ThreadLocalUtil;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,11 @@ import java.time.LocalDateTime;
 public class MyMetaObjectHandler implements MetaObjectHandler {
     @Override
     public void insertFill(MetaObject metaObject) {
+        //微信用户登录
+        if(metaObject.getOriginalObject() instanceof User){
+            this.strictInsertFill(metaObject,"createTime", LocalDateTime.class, LocalDateTime.now());
+            return;
+        }
 
         this.strictInsertFill(metaObject,"createTime", LocalDateTime.class, LocalDateTime.now());
         this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());

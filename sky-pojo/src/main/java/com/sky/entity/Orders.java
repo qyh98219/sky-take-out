@@ -83,6 +83,7 @@ public class Orders implements Serializable {
     private LocalDateTime cancelTime;
 
     @ApiModelProperty("预计送达时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime estimatedDeliveryTime;
 
     @ApiModelProperty("配送状态  1立即送出  0选择具体时间")

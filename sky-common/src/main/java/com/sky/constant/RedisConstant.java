@@ -11,5 +11,4 @@ public class RedisConstant {
     public static final String LOGIN_ERROR_COUNT = "LOGIN_ERROR_COUNT";
     public static final String SHOP_STATUS = "SHOP_STATUS";
     public static final String CAHE_SHOP = "CACHE_SHOP";
-    public static final String CACHE_SETMEAL = "CACHE_SETMEAL";
 }
